@@ -20,7 +20,7 @@ author: Ir1d, Anguei, hsfzLZH1, siger-young, HeRaNO
 
 非递归的方法是定义两个 [栈](../ds/stack.md) 来分别存储运算符和运算数。每当遇到一个数直接放进数的栈；每当遇到一个操作符时，要查找之前运算符栈中的元素，按照预先定义好的优先级来进行适当的弹出操作（弹出的同时求出对应的子表达式的值）。
 
-我们要知道：算术表达式分为三种，分别是前缀表达式、中缀表达式、后缀表达式。其中，中缀表达式是我们日常生活中最常用的表达式；后缀表达式是计算机最容易理解的表达式。为什么说后缀表达式最容易被计算机理解呢？因为后缀表达式不需要括号表示，它的运算顺序是唯一确定的。举个例子：在后缀表达式 $3~2~*~1~-$ 中，首先计算 $3 \times 2 = 6$ （使用最后一个运算符，即栈顶运算符），然后计算 $6 - 1 = 5$ 。可以看到：对于一个后缀表达式，只需要 **维护一个数字栈，每次遇到一个运算符，就取出两个栈顶元素，将运算结果重新压入栈中** 。最后，栈中唯一一个元素就是该后缀表达式的运算结果时间复杂度 $O(n)$ 。
+我们要知道：算术表达式分为三种，分别是前缀表达式、中缀表达式、后缀表达式。其中，中缀表达式是我们日常生活中最常用的表达式；后缀表达式是计算机最容易理解的表达式。为什么说后缀表达式最容易被计算机理解呢？因为后缀表达式不需要括号表示，它的运算顺序是唯一确定的。举个例子：在后缀表达式 $3 2 * 1 -$ 中，首先计算 $3 \times 2 = 6$ （使用最后一个运算符，即栈顶运算符），然后计算 $6 - 1 = 5$ 。可以看到：对于一个后缀表达式，只需要 **维护一个数字栈，每次遇到一个运算符，就取出两个栈顶元素，将运算结果重新压入栈中** 。最后，栈中唯一一个元素就是改后缀表达式的运算结果时间复杂度 $O(n)$ 。
 
 所以说，对于普通中缀表达式的计算，我们可以将其转化为后缀表达式再进行计算。转换方法也十分简单。只要建立一个用于存放运算符的栈，扫描该中缀表达式：
 
@@ -82,137 +82,6 @@ author: Ir1d, Anguei, hsfzLZH1, siger-young, HeRaNO
         return num.top();
       }
     ```
-
-###  一元运算符
-
-以上的内容包括NOIP2005 等价表达式只计算了只含双目运算符（二元运算符）的表达式，那么对含有负号这种单目运算符（一元运算符）的表达式该怎么处理呢？
-
-现在假设表达式还包含一元运算符，且一元运算符只作用于符号右边的参数
-
-在这种情况下，我们首先需要确定当前操作符是一元的还是二元的。
-
-可以注意到，在一个一元运算符之前，总是有另一个运算符或一个括号，或者什么都没有(位于表达式的最开始)。
-
-相反，在二元运算符之前，总是会有一个数字或一个右括号。
-
-因此，很容易标记操作符是否是一元的。
-
-### 右结合
-
-右结合的意思是，当优先级相等时，运算符必须从右到左计算。如上所述，一元运算符通常是右结合的。
-
-另一个右关联运算符的例子是求幂运算符($a \wedge b \wedge c$通常被认为是$a^{b^c}$，而不是$(a^b)^c$)。
-
-为了实现右结合，实际上只需要几行的代码
-
-```cpp
-while (!op.empty() && priority(op.top()) >= priority(cur_op))
-```
-
-以及
-```cpp
-while (!op.empty() && (
-        (left_assoc(cur_op) && priority(op.top()) >= priority(cur_op)) ||
-        (!left_assoc(cur_op) && priority(op.top()) > priority(cur_op))
-    ))
-```
-`left_assoc`函数是用来判断一个运算符是否为左结合运算符。
-
-### 实现
-
-二元运算符： $+$,$-$,$*$,$/$ 
-一元运算符： $+$,$-$
-
-```cpp expression_parsing_unary
-bool delim(char c) {
-    return c == ' ';
-}
-
-bool is_op(char c) {
-    return c == '+' || c == '-' || c == '*' || c == '/';
-}
-
-bool is_unary(char c) {
-    return c == '+' || c=='-';
-}
-
-int priority (char op) {
-    if (op < 0) // unary operator
-        return 3;
-    if (op == '+' || op == '-')
-        return 1;
-    if (op == '*' || op == '/')
-        return 2;
-    return -1;
-}
-
-void process_op(stack<int>& st, char op) {
-    if (op < 0) {
-        int l = st.top(); st.pop();
-        switch (-op) {
-            case '+': st.push(l); break;
-            case '-': st.push(-l); break;
-        }
-    } else {
-        int r = st.top(); st.pop();
-        int l = st.top(); st.pop();
-        switch (op) {
-            case '+': st.push(l + r); break;
-            case '-': st.push(l - r); break;
-            case '*': st.push(l * r); break;
-            case '/': st.push(l / r); break;
-        }
-    }
-}
-
-int evaluate(string& s) {
-    stack<int> st;
-    stack<char> op;
-    bool may_be_unary = true;
-    for (int i = 0; i < (int)s.size(); i++) {
-        if (delim(s[i]))
-            continue;
-        
-        if (s[i] == '(') {
-            op.push('(');
-            may_be_unary = true;
-        } else if (s[i] == ')') {
-            while (op.top() != '(') {
-                process_op(st, op.top());
-                op.pop();
-            }
-            op.pop();
-            may_be_unary = false;
-        } else if (is_op(s[i])) {
-            char cur_op = s[i];
-            if (may_be_unary && is_unary(cur_op))
-                cur_op = -cur_op;
-            while (!op.empty() && (
-                    (cur_op >= 0 && priority(op.top()) >= priority(cur_op)) ||
-                    (cur_op < 0 && priority(op.top()) > priority(cur_op))
-                )) {
-                process_op(st, op.top());
-                op.pop();
-            }
-            op.push(cur_op);
-            may_be_unary = true;
-        } else {
-            int number = 0;
-            while (i < (int)s.size() && isalnum(s[i]))
-                number = number * 10 + s[i++] - '0';
-            --i;
-            st.push(number);
-            may_be_unary = false;
-        }
-    }
-
-    while (!op.empty()) {
-        process_op(st, op.top());
-        op.pop();
-    }
-    return st.top();
-}
-```
 
 ## 习题
 
