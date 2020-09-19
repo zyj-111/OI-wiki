@@ -136,6 +136,7 @@ nav:
       - 排序应用: basic/use-of-sort.md
     - 前缀和 & 差分: basic/prefix-sum.md
     - 二分: basic/binary.md
+    - 三分: basic/ternary.md
     - 倍增: basic/binary-lifting.md
   - 搜索:
     - 搜索部分简介: search/index.md
